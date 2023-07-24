@@ -1,109 +1,67 @@
 #include "main.h"
-#include <stdio.h>
-#include <limits.h>
 
-int main()
+void print_buffer(char buffer[], int *buff_ind);
+
+/**
+ * _printf - Printf function
+ * @format: format.
+ * Return: Printed chars.
+ */
+int _printf(const char *format, ...)
 {
-	int len_1 = 0, len_2 = 0;
+	int i, printed = 0, printed_chars = 0;
+	int flags, width, precision, size, buff_ind = 0;
+	va_list list;
+	char buffer[BUFF_SIZE];
 
-	/* ===========> %c <=========== */
-	printf("----------------------\n");
-	printf("----> CHAR CASES <----\n");
-	printf("----------------------\n");
-	len_1 = printf("Expected output:    %c\n", 53);
-	len_2 = _printf("Current output:     %c\n", 53);
-	printf("Expected length:    [%d]\n", len_1);
-	printf("Current length:     [%d]\n", len_2);
-	len_1 = printf("Expected output:    %cc\n", 'a');
-	len_2 = _printf("Current output:     %cc\n", 'a');
-	printf("Expected length:    [%d]\n", len_1);
-	printf("Current length:     [%d]\n", len_2);
-	len_1 = printf("Expected output:    %cAAA\n", 'a');
-	len_2 = _printf("Current output:     %cAAA\n", 'a');
-	printf("Expected length:    [%d]\n", len_1);
-	printf("Current length:     [%d]\n", len_2);
-	len_1 = printf("Expected output:    %yd\n");
-	len_2 = _printf("Current output:     %yd\n");
-	printf("Expected length:    [%d]\n", len_1);
-	printf("Current length:     [%d]\n", len_2);
-	len_1 = printf("Expected output:    %c\n", '\0');
-	len_2 = _printf("Current output:     %c\n", '\0');
-	printf("Expected length:    [%d]\n", len_1);
-	printf("Current length:     [%d]\n", len_2);
-	len_1 = printf("Expected output:    %%%c\n", 'y');
-	len_2 = _printf("Current output:     %%%c\n", 'y');
-	printf("Expected length:    [%d]\n", len_1);
-	printf("Current length:     [%d]\n", len_2);
+	if (format == NULL)
+		return (-1);
 
-	/* ===========> %s <=========== */
-	printf("----------------------\n");
-	printf("---> STRING CASES <---\n");
-	printf("----------------------\n");
-	len_1 = printf("Expected output:    %s\n", "Morocco");
-	len_2 = _printf("Current output:     %s\n", "Morocco");
-	printf("Expected length:    [%d]\n", len_1);
-	printf("Current length:     [%d]\n", len_2);
-	len_1 = printf("Expected output:    %s$\n", "");
-	len_2 = _printf("Current output:     %s$\n", "");
-	printf("Expected length:    [%d]\n", len_1);
-	printf("Current length:     [%d]\n", len_2);
-	len_1 = printf("Expected output:    %s$\n", NULL);
-	len_2 = _printf("Current output:     %s$\n", NULL);
-	printf("Expected length:    [%d]\n", len_1);
-	printf("Current length:     [%d]\n", len_2);
-	len_1 = printf("Expected output:    %s\n", "hello, world");
-	len_2 = _printf("Current output:     %s\n", "hello, world");
-	printf("Expected length:    [%d]\n", len_1);
-	printf("Current length:     [%d]\n", len_2);
-	len_1 = printf("Expected output:    %sForLife\n", "Morocco");
-	len_2 = _printf("Current output:     %sForLife\n", "Morocco");
-	printf("Expected length:    [%d]\n", len_1);
-	printf("Current length:     [%d]\n", len_2);
+	va_start(list, format);
 
-	/* ===========> % <=========== */
-	printf("----------------------\n");
-	printf("-> PERCENTAGE CASES <-\n");
-	printf("----------------------\n");
-	len_1 = printf("Expected output:    %%\n");
-	len_2 = _printf("Current output:     %%\n");
-	printf("Expected length:    [%d]\n", len_1);
-	printf("Current length:     [%d]\n", len_2);
-	len_1 = printf("Expected output:    %%%%%%\n");
-	len_2 = _printf("Current output:     %%%%%%\n");
-	printf("Expected length:    [%d]\n", len_1);
-	printf("Current length:     [%d]\n", len_2);
-	printf("Expected output:    ");
-	len_1 = printf("%");
-	printf("\n");
-	printf("Current output:     ");
-	len_2 = _printf("%");
-	printf("\n");
-	printf("Expected length:    [%d]\n", len_1);
-	printf("Current length:     [%d]\n", len_2);
-	printf("Expected output:    ");
-	len_1 = printf("%   ");
-	printf("\n");
-	printf("Current output:     ");
-	len_2 = _printf("%   ");
-	printf("\n");
-	printf("Expected length:    [%d]\n", len_1);
-	printf("Current length:     [%d]\n", len_2);
-	printf("Expected output:    ");
-	len_1 = printf("test%");
-	printf("\n");
-	printf("Current output:     ");
-	len_2 = _printf("test%");
-	printf("\n");
-	printf("Expected length:    [%d]\n", len_1);
-	printf("Current length:     [%d]\n", len_2);
-	printf("Expected output:    ");
-	len_1 = printf("%  s", "valid format");
-	printf("\n");
-	printf("Current output:     ");
-	len_2 = _printf("%  s", "valid format");
-	printf("\n");
-	printf("Expected length:    [%d]\n", len_1);
-	printf("Current length:     [%d]\n", len_2);
+	for (i = 0; format && format[i] != '\0'; i++)
+	{
+		if (format[i] != '%')
+		{
+			buffer[buff_ind++] = format[i];
+			if (buff_ind == BUFF_SIZE)
+				print_buffer(buffer, &buff_ind);
+			/* write(1, &format[i], 1);*/
+			printed_chars++;
+		}
+		else
+		{
+			print_buffer(buffer, &buff_ind);
+			flags = get_flags(format, &i);
+			width = get_width(format, &i, list);
+			precision = get_precision(format, &i, list);
+			size = get_size(format, &i);
+			++i;
+			printed = handle_print(format, &i, list, buffer,
+				flags, width, precision, size);
+			if (printed == -1)
+				return (-1);
+			printed_chars += printed;
+		}
+	}
 
-	return (0);
+	print_buffer(buffer, &buff_ind);
+
+	va_end(list);
+
+	return (printed_chars);
 }
+
+/**
+ * print_buffer - Prints the contents of the buffer if it exist
+ * @buffer: Array of chars
+ * @buff_ind: Index at which to add next char, represents the length.
+ */
+void print_buffer(char buffer[], int *buff_ind)
+{
+	if (*buff_ind > 0)
+		write(1, &buffer[0], *buff_ind);
+
+	*buff_ind = 0;
+}
+
